@@ -1238,6 +1238,72 @@ public class PeergosNetworkUtils {
 
     }
 
+    public static void socialFeedVariations2(NetworkAccess network, Random random) {
+        CryptreeNode.setMaxChildLinkPerBlob(10);
+
+        String password = "notagoodone";
+        UserContext sharer = PeergosNetworkUtils.ensureSignedUp(generateUsername(random), password, network, crypto);
+
+        List<UserContext> shareeUsers = getUserContextsForNode(network, random, 1, Arrays.asList(password, password));
+        UserContext sharee = shareeUsers.get(0);
+
+        // friend sharer with others
+        friendBetweenGroups(Arrays.asList(sharer), shareeUsers);
+        String dir1 = "one";
+        String dir2 = "two";
+        sharer.getUserRoot().join().mkdir(dir1, sharer.network, false, sharer.crypto).join();
+        sharer.getUserRoot().join().mkdir(dir2, sharer.network, false, sharer.crypto).join();
+
+        Path dirToShare1 = Paths.get(sharer.username, dir1);
+        Path dirToShare2 = Paths.get(sharer.username, dir2);
+        sharer.shareReadAccessWithAll(sharer.getByPath(dirToShare1).join().get(), dirToShare1, Set.of(sharee.username)).join();
+        sharer.shareReadAccessWithAll(sharer.getByPath(dirToShare2).join().get(), dirToShare2, Set.of(sharee.username)).join();
+
+        SocialFeed feed = sharee.getSocialFeed().join();
+        List<SharedItem> items = feed.getShared(0, 1000, sharee.crypto, sharee.network).join();
+        Assert.assertTrue(items.size() == 2);
+
+        sharee.getUserRoot().join().mkdir("mine", sharer.network, false, sharer.crypto).join();
+    }
+
+    public static void socialFeedFailsInUI(NetworkAccess network, Random random) {
+        CryptreeNode.setMaxChildLinkPerBlob(10);
+
+        String password = "notagoodone";
+        UserContext sharer = PeergosNetworkUtils.ensureSignedUp(generateUsername(random), password, network, crypto);
+
+        List<UserContext> shareeUsers = getUserContextsForNode(network, random, 1, Arrays.asList(password, password));
+        UserContext sharee = shareeUsers.get(0);
+
+        // friend sharer with others
+        friendBetweenGroups(Arrays.asList(sharer), shareeUsers);
+        String dir1 = "one";
+        String dir2 = "two";
+        sharer.getUserRoot().join().mkdir(dir1, sharer.network, false, sharer.crypto).join();
+        sharer.getUserRoot().join().mkdir(dir2, sharer.network, false, sharer.crypto).join();
+
+        Path dirToShare1 = Paths.get(sharer.username, dir1);
+        Path dirToShare2 = Paths.get(sharer.username, dir2);
+        sharer.shareReadAccessWithAll(sharer.getByPath(dirToShare1).join().get(), dirToShare1, Set.of(sharee.username)).join();
+        sharer.shareReadAccessWithAll(sharer.getByPath(dirToShare2).join().get(), dirToShare2, Set.of(sharee.username)).join();
+
+        SocialFeed feed = sharee.getSocialFeed().join();
+        List<SharedItem> items = feed.getShared(0, 1000, sharee.crypto, sharee.network).join();
+        Assert.assertTrue(items.size() == 2);
+
+        sharee = PeergosNetworkUtils.ensureSignedUp(sharee.username, password, network, crypto);
+        sharee.getUserRoot().join().mkdir("mine", sharer.network, false, sharer.crypto).join();
+
+        feed = sharee.getSocialFeed().join();
+        items = feed.getShared(0, 1000, sharee.crypto, sharee.network).join();
+        Assert.assertTrue(items.size() == 2);
+
+        //When attempting this in the web-ui the below call results in a failure when loading timeline entry
+        //Cannot seek to position 680 in file of length 340
+        feed = sharee.getSocialFeed().join();
+        items = feed.getShared(0, 1000, sharee.crypto, sharee.network).join();
+        Assert.assertTrue(items.size() == 2);
+    }
 
     public static void socialFeed(NetworkAccess network, Random random) {
         CryptreeNode.setMaxChildLinkPerBlob(10);

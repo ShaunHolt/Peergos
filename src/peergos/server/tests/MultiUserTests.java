@@ -179,6 +179,16 @@ public class MultiUserTests {
     }
 
     @Test
+    public void socialFeedVariations2() {
+        PeergosNetworkUtils.socialFeedVariations2(network, random);
+    }
+
+    @Test
+    public void socialFeedFailsInUI() {
+        PeergosNetworkUtils.socialFeedFailsInUI(network, random);
+    }
+
+    @Test
     public void safeCopyOfFriendsReadAccess() throws Exception {
         TriFunction<UserContext, UserContext, String, CompletableFuture<Boolean>> readAccessSharingFunction =
                 (u1, u2, filename) ->
