@@ -1099,6 +1099,26 @@ public abstract class UserTests {
     }
 
     @Test
+    public void calendarEventListTest() throws Exception {
+        String username = generateUsername();
+        String password = "test01";
+        UserContext context = PeergosNetworkUtils.ensureSignedUp(username, password, network, crypto);
+
+        List<CalendarEvent> items = context.getAllCalendarEvents().join();
+        assertTrue("size", items.isEmpty());
+        CalendarEvent item = new CalendarEvent( "Id", "categoryId", "title", true, "start",
+                 "end", "location", false, "state", "memo");
+        LocalDate now = LocalDate.now();
+        context.updateCalendarEvent(now.getYear(), now.getMonth().getValue(),item).join();
+        List<CalendarEvent> updatedItems = context.getAllCalendarEvents().join();
+        assertTrue("size", updatedItems.size() == 1);
+
+        context.removeCalendarEvent(now.getYear(), now.getMonth().getValue(), item.Id).join();
+        updatedItems = context.getAllCalendarEvents().join();
+        assertTrue("size", updatedItems.size() == 0);
+    }
+
+    @Test
     public void rename() throws Exception {
         String username = generateUsername();
         String password = "test01";
